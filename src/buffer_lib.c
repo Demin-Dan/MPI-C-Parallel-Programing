@@ -8,7 +8,7 @@ void buffer_print(int *buf, int len) {
 	for (int i = 0; i < len; i ++) printf("%d ", buf[i]); printf("\n");
 }
 
-int buffer_distribute(int *buf, int len, int *lens, int *inds, int dby) {
+int buffer_distribute(int len, int *lens, int *inds, int dby) {
 	int llen = len / dby > 1 ? ceil(len / (1.0 * dby)) : len % dby;
 	if (len - dby == 1) llen = dby;
 	int rlen, off;

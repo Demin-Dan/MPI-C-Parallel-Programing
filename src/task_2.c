@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 		srand(time(NULL));
 		
 		buffer_fill(buf, len, st, en); buffer_print(buf, len);
-		buffer_distribute(buf, len, lens, inds, MPI_COMM_SIZE - 1);
+		buffer_distribute(len, lens, inds, MPI_COMM_SIZE - 1);
 		
 		printf("distributed lengths "); buffer_print(lens, MPI_COMM_SIZE - 1);
 		printf("distributed indexes "); buffer_print(inds, MPI_COMM_SIZE - 1);

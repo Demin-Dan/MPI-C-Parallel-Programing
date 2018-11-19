@@ -3,7 +3,7 @@
 
 void buffer_print(int*, int);
 
-int buffer_distribute(int*, int, int*, int*, int);
+int buffer_distribute(int, int*, int*, int);
 
 void buffer_fill(int*, int, int, int);
 

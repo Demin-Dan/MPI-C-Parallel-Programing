@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 	
 	MPI_Barrier(MPI_COMM_WORLD);
 	
-	buffer_distribute(buf1, len, lens, inds, MPI_COMM_SIZE);
+	buffer_distribute(len, lens, inds, MPI_COMM_SIZE);
 	
 	if (MPI_COMM_RANK == 0) {
 		printf("distributed lengths "); buffer_print(lens, MPI_COMM_SIZE);
