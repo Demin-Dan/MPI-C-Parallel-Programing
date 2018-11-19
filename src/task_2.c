@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mpi.h>
+#include <time.h>
 #include "lib/buffer_lib.h"
 
 /*
@@ -32,6 +33,8 @@ int main(int argc, char** argv) {
 		int *buf; buf = (int*) malloc(len * sizeof(int));
 		int *lens; lens = (int*) malloc((MPI_COMM_SIZE - 1) * sizeof(int));
 		int *inds; inds = (int*) malloc((MPI_COMM_SIZE - 1) * sizeof(int));
+		
+		srand(time(NULL));
 		
 		buffer_fill(buf, len, st, en); buffer_print(buf, len);
 		buffer_distribute(buf, len, lens, inds, MPI_COMM_SIZE - 1);

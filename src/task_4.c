@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mpi.h>
-#include <math.h>
+#include <time.h>
 #include "lib/buffer_lib.h"
 
 /*
@@ -36,6 +36,8 @@ int main(int argc, char** argv) {
 	inds = (int*) malloc(MPI_COMM_SIZE * sizeof(int));
 	rbuf = (int*) calloc(2, sizeof(int));
 	gbuf = (int*) calloc(2, sizeof(int));
+	
+	srand(time(NULL));
 	
 	if (MPI_COMM_RANK == 0) { buffer_fill(buf, len, st, en); buffer_print(buf, len); }
 	
