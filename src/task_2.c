@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 		}
 		
 		for (int i = 1; i < MPI_COMM_SIZE; i ++) free(bufs[i-1]);
-		free(buf); free(sts); free(bufs);
+		free(buf); free(sts); free(bufs); free(lens);
 		
 		printf("result: max(%d)\n", mx);
 	} else {

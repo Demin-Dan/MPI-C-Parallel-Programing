@@ -5,6 +5,11 @@
 #include <time.h>
 #include "lib/buffer_lib.h"
 
+/*
+ *	Task:
+ *		calculate scalar multiplication
+ */
+ 
 int main(int argc, char** argv) {
 	
 	int MPI_COMM_SIZE, MPI_COMM_RANK;
@@ -70,5 +75,4 @@ int main(int argc, char** argv) {
 	MPI_Finalize();
 	
 	return (EXIT_SUCCESS);
-	
 }
