@@ -54,14 +54,14 @@ int main(int argc, char** argv) {
 	
 	MPI_Scatterv(buf, slns, inds, MPI_INT, lbuf, slns[MPI_COMM_RANK], MPI_INT, 0, MPI_COMM_WORLD);
 	
-	printf("thread(%d):\n", MPI_COMM_RANK);
+	if (lens[MPI_COMM_RANK] > 0) printf("thread(%d):\n", MPI_COMM_RANK);
 	int lmx = INT_MIN, lmn;
 	for (int i = 0; i < lens[MPI_COMM_RANK]; i ++) {
 		lmn = buffer_min(lbuf[i], cls);
 		if (lmn > lmx) lmx = lmn;
 		printf("\tmin(%d) ", lmn); buffer_print(lbuf[i], cls);
 	}
-	printf("\tmaxmin(%d)\n", lmx);
+	if (lens[MPI_COMM_RANK] > 0) printf("\tmaxmin(%d)\n", lmx);
 	
 	free(buf); free(lbuf); free(lens); free(inds); free(slns);
 	

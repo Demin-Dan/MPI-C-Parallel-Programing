@@ -9,7 +9,7 @@ void buffer_print(int *buf, int len) {
 }
 
 int buffer_distribute(int len, int *lens, int *inds, int dby) {
-	int llen = len / dby > 1 ? ceil(len / (1.0 * dby)) : len % dby;
+	int llen = len / dby >= 1 ? ceil(len / (1.0 * dby)) : len % dby;
 	int rlen, off;
 	for (int i = 0; i < dby; i ++) {
 		rlen = len - i * llen;
