@@ -1,50 +1,50 @@
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include "lib/buffer_lib.h"
 
-int buffer_fill(int *buffer, int buffer_length, int from, int to) {
-    srand(time(NULL));
-    
-    for (int i = 0; i < buffer_length; i ++) {
-        buffer[i] = (rand() % (to - from + 1)) + from;
-    }
-    
-    return (EXIT_SUCCESS);
+void buffer_print(int *buf, int len) {
+	for (int i = 0; i < len; i ++) printf("%d ", buf[i]); printf("\n");
 }
 
-int buffer_copy(int *buffer, int *source, int source_length, int to) {
-	for (int i = 0; i < source_length; i ++) {
-		buffer[to + i] = source[i];
+int buffer_distribute(int *buf, int len, int *lens, int *inds, int dby) {
+	int llen = len / dby > 1 ? ceil(len / (1.0 * dby)) : len % dby;
+	if (len - dby == 1) llen = dby;
+	int rlen, off;
+	for (int i = 0; i < dby; i ++) {
+		rlen = len - i * llen;
+		lens[i] = rlen >= llen ? llen : rlen;
+		if (lens[i] <= 0) lens[i] = 1;
+		off = buffer_sum(lens, 0, i);
+		inds[i] = off < len ? off : 0;
 	}
-
-	return (EXIT_SUCCESS);
+	return llen;
 }
 
-int *buffer_slice(int *buffer, int buffer_length, int from, int target_length) {
-	int *output;
-	output = (int*) malloc(target_length * sizeof(int));
-
-	for (int i = 0; i < target_length; i ++) {
-		output[i] = buffer[from + i];
-	}
-
-	return output;
+void buffer_fill(int *buf, int len, int st, int en) {
+    for (int i = 0; i < len; i ++) buf[i] = (rand() % (en - st + 1)) + st;
 }
 
-int buffer_max(int *buffer, int buffer_length, int *maximum) {
-	*maximum = buffer[0];
-	for (int i = 1; i < buffer_length; i ++) {
-		if (buffer[i] > *maximum) {
-			*maximum = buffer[i];
-		}
-	}
-
-	return (EXIT_SUCCESS);
+void buffer_copy(int *buf, int *src, int slen, int bst) {
+	for (int i = 0; i < slen; i ++) buf[bst + i] = src[i];
 }
 
-int buffer_sum(int *buffer, int from, int to) {
-	int summary = 0;
-	for (int i = from; i < to; i ++) summary += buffer[i];
-	return summary;
+int *buffer_slice(int *buf, int len, int st, int tlen) {
+	int *ot; ot = (int*) malloc(tlen * sizeof(int));
+	for (int i = 0; i < tlen; i ++) ot[i] = buf[st + i];
+	return ot;
+}
+
+int buffer_max(int *buf, int len) {
+	int mx = buf[0];
+	for (int i = 1; i < len; i ++) if (buf[i] > mx) mx = buf[i];
+	return mx;
+}
+
+int buffer_sum(int *buf, int st, int en) {
+	int sm = 0;
+	for (int i = st; i < en; i ++) sm += buf[i];
+	return sm;
 }

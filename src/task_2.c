@@ -1,9 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <limits.h>
 #include <mpi.h>
-#include <math.h>
 #include "lib/buffer_lib.h"
 
 /*
@@ -13,93 +11,66 @@
 
 int main(int argc, char** argv) {
 	
-	int thread_rank, comm_size;
+	int MPI_COMM_SIZE, MPI_COMM_RANK;
 	
 	MPI_Init(&argc, &argv);
 	
-	MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &thread_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &MPI_COMM_SIZE);
+	MPI_Comm_rank(MPI_COMM_WORLD, &MPI_COMM_RANK);
 	
-	int *buffer; int buffer_length;
-	
-	if (argc == 1) {
-		
-		if (thread_rank == 0) printf("Please, specify length of vector as program argument in command line.\n");
+	if (argc != 4) {
+		if (MPI_COMM_RANK == 0) printf("program arguments: <vector length> <value range start> <value range end>\n");
 		MPI_Finalize();
 		return (EXIT_SUCCESS);
+	}
+	
+	if (MPI_COMM_RANK == 0) {
+		int len = atoi(argv[1]);
+		int st = atoi(argv[2]);
+		int en = atoi(argv[3]);
 		
+		int *buf; buf = (int*) malloc(len * sizeof(int));
+		int *lens; lens = (int*) malloc((MPI_COMM_SIZE - 1) * sizeof(int));
+		int *inds; inds = (int*) malloc((MPI_COMM_SIZE - 1) * sizeof(int));
+		
+		buffer_fill(buf, len, st, en); buffer_print(buf, len);
+		buffer_distribute(buf, len, lens, inds, MPI_COMM_SIZE - 1);
+		
+		printf("distributed lengths "); buffer_print(lens, MPI_COMM_SIZE - 1);
+		printf("distributed indexes "); buffer_print(inds, MPI_COMM_SIZE - 1);
+		
+		int **bufs; bufs = (int**) malloc((MPI_COMM_SIZE - 1) * sizeof(int*));
+		for (int i = 1; i < MPI_COMM_SIZE; i ++) bufs[i-1] = (int*) malloc(lens[i-1] * sizeof(int));
+		
+		for (int i = 1; i < MPI_COMM_SIZE; i ++) {
+			MPI_Send(&lens[i-1], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+			bufs[i-1] = buffer_slice(buf, len, inds[i-1], lens[i-1]);
+			MPI_Send(bufs[i-1], lens[i-1], MPI_INT, i, 0, MPI_COMM_WORLD);
+		}
+		
+		free(lens); free(inds);
+		
+		int lmx, mx = buf[0];
+		MPI_Status *sts; sts = (MPI_Status*) malloc((MPI_COMM_SIZE - 1) * sizeof(MPI_Status));
+		for (int i = 1; i < MPI_COMM_SIZE; i ++) {
+			MPI_Recv(&lmx, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sts[i-1]);
+			if (lmx > mx) mx = lmx;
+		}
+		
+		for (int i = 1; i < MPI_COMM_SIZE; i ++) free(bufs[i-1]);
+		free(buf); free(sts); free(bufs);
+		
+		printf("result: max(%d)\n", mx);
 	} else {
-		
-		char *p = argv[1];
-		buffer_length = atoi(p);
-		if (comm_size >= buffer_length) {
-			if (thread_rank == 0) printf("The amount of threads can't be greater than or equal to vector length.\n");
-			MPI_Finalize();
-			return (EXIT_SUCCESS);
-		}
-		
-		buffer = malloc(buffer_length * sizeof(int));
-		buffer_fill(buffer, buffer_length, 0, 100);
-		
-		if (thread_rank == 0) { for (int i = 0; i < buffer_length; i ++) printf("%d ", buffer[i]); printf("\n"); }
-		
-		int global_max;
-		int thread_buffer_length;
-		int *sendcounts, *displs;
-		int remain_buffer_length = buffer_length;
-		
-		if (buffer_length / comm_size > 1) {
-			thread_buffer_length = ceil(buffer_length / (1.0 * comm_size));
-		} else {
-			thread_buffer_length = buffer_length % comm_size;
-		}
-		
-		if (buffer_length - comm_size == 1) thread_buffer_length = comm_size;
-		
-		sendcounts = (int*) calloc(comm_size, sizeof(int));
-		displs = (int*) malloc(comm_size * sizeof(int));
-		
-		for (int i = 0; i < comm_size; i ++) {
-			remain_buffer_length = buffer_length - i * thread_buffer_length;
-			if (remain_buffer_length >= thread_buffer_length) {
-				sendcounts[i] += thread_buffer_length;
-			} else {
-				if (remain_buffer_length <= 0) remain_buffer_length = 1;
-				sendcounts[i] += remain_buffer_length;
-			}
-			int offset = buffer_sum(sendcounts, 0, i);
-			if (offset < buffer_length) {
-				displs[i] = offset;
-			} else {
-				displs[i] = 0;
-			}
-		}
-		
-		if (thread_rank == 0) {
-			printf("Sendcounts ["); for (int i = 0; i < comm_size; i ++) printf("%d ", sendcounts[i]); printf("]\n");
-			printf("Displs ["); for (int i = 0; i < comm_size; i ++) printf("%d ", displs[i]); printf("]\n");
-		}
-		
-		int *thread_buffer;
-		thread_buffer = malloc(thread_buffer_length * sizeof(int));
-		
-		MPI_Scatterv(buffer, sendcounts, displs, MPI_INT, thread_buffer, thread_buffer_length, MPI_INT, 0, MPI_COMM_WORLD);
-		
-		free(buffer);
-		
-		int thread_max = thread_buffer[0];
-		for (int i = 0; i < sendcounts[thread_rank]; i ++) {
-			if (thread_buffer[i] > thread_max) thread_max = thread_buffer[i];
-		}
-		
-		MPI_Reduce(&thread_max, &global_max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-		
-		free(sendcounts);
-		free(displs);
-		free(thread_buffer);
-		
-		if (thread_rank == 0) printf("Maximum: %d\n", global_max);
-		
+		MPI_Status lst, bst;
+		int len, *buf;
+		MPI_Recv(&len, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &lst);
+		buf = (int*) malloc(len * sizeof(int));
+		MPI_Recv(buf, len, MPI_INT, 0, 0, MPI_COMM_WORLD, &bst);
+		int mx = buffer_max(buf, len);
+		printf("thread(%d): max(%d) array(%d) ", MPI_COMM_RANK, mx, len); buffer_print(buf, len);
+		free(buf);
+		MPI_Send(&mx, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 	}
 	
 	MPI_Finalize();
