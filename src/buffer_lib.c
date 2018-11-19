@@ -10,7 +10,6 @@ void buffer_print(int *buf, int len) {
 
 int buffer_distribute(int len, int *lens, int *inds, int dby) {
 	int llen = len / dby > 1 ? ceil(len / (1.0 * dby)) : len % dby;
-	if (len - dby == 1) llen = dby;
 	int rlen, off;
 	for (int i = 0; i < dby; i ++) {
 		rlen = len - i * llen;
@@ -19,6 +18,7 @@ int buffer_distribute(int len, int *lens, int *inds, int dby) {
 		off = buffer_sum(lens, 0, i);
 		inds[i] = off < len ? off : 0;
 	}
+	if (len - dby == 1) lens[dby - 1] ++;
 	return llen;
 }
 
@@ -40,6 +40,12 @@ int buffer_max(int *buf, int len) {
 	int mx = buf[0];
 	for (int i = 1; i < len; i ++) if (buf[i] > mx) mx = buf[i];
 	return mx;
+}
+
+int buffer_min(int *buf, int len) {
+	int mn = buf[0];
+	for (int i = 1; i < len; i ++) if (buf[i] < mn) mn = buf[i];
+	return mn;
 }
 
 int buffer_sum(int *buf, int st, int en) {

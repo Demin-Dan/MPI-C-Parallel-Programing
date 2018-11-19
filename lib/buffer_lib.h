@@ -13,6 +13,8 @@ int *buffer_slice(int*, int, int, int);
 
 int buffer_max(int*, int);
 
+int buffer_min(int*, int);
+
 int buffer_sum(int*, int, int);
 
 #endif
