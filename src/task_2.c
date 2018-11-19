@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
 			MPI_Send(bufs[i-1], lens[i-1], MPI_INT, i, 0, MPI_COMM_WORLD);
 		}
 		
-		free(lens); free(inds);
+		free(inds);
 		
 		int lmx, mx = buf[0];
 		MPI_Status *sts; sts = (MPI_Status*) malloc((MPI_COMM_SIZE - 1) * sizeof(MPI_Status));
-		for (int i = 1; i < MPI_COMM_SIZE; i ++) {
+		for (int i = 1; i < MPI_COMM_SIZE; i ++) if (lens[i-1] > 0) {
 			MPI_Recv(&lmx, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &sts[i-1]);
 			if (lmx > mx) mx = lmx;
 		}
@@ -66,14 +66,16 @@ int main(int argc, char** argv) {
 		printf("result: max(%d)\n", mx);
 	} else {
 		MPI_Status lst, bst;
-		int len, *buf;
+		int len, *buf, mx;
 		MPI_Recv(&len, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &lst);
-		buf = (int*) malloc(len * sizeof(int));
-		MPI_Recv(buf, len, MPI_INT, 0, 0, MPI_COMM_WORLD, &bst);
-		int mx = buffer_max(buf, len);
-		printf("thread(%d): max(%d) array(%d) ", MPI_COMM_RANK, mx, len); buffer_print(buf, len);
-		free(buf);
-		MPI_Send(&mx, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		if (len > 0) {
+			buf = (int*) malloc(len * sizeof(int));
+			MPI_Recv(buf, len, MPI_INT, 0, 0, MPI_COMM_WORLD, &bst);
+			mx = buffer_max(buf, len);
+			printf("thread(%d): max(%d) array(%d) ", MPI_COMM_RANK, mx, len); buffer_print(buf, len);
+			free(buf);
+			MPI_Send(&mx, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		}
 	}
 	
 	MPI_Finalize();

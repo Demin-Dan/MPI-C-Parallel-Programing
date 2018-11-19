@@ -15,7 +15,7 @@ int buffer_distribute(int *buf, int len, int *lens, int *inds, int dby) {
 	for (int i = 0; i < dby; i ++) {
 		rlen = len - i * llen;
 		lens[i] = rlen >= llen ? llen : rlen;
-		if (lens[i] <= 0) lens[i] = 1;
+		if (lens[i] <= 0) lens[i] = 0;
 		off = buffer_sum(lens, 0, i);
 		inds[i] = off < len ? off : 0;
 	}
