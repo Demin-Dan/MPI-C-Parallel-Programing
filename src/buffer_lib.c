@@ -18,8 +18,13 @@ int buffer_distribute(int len, int *lens, int *inds, int dby) {
 		off = buffer_sum(lens, 0, i);
 		inds[i] = off < len ? off : 0;
 	}
-	if (len - dby == 1) lens[dby - 1] ++;
 	return llen;
+}
+
+int *buffer_reverse(int* buf, int len) {
+	int *rbuf; rbuf = (int*) malloc(len * sizeof(int));
+	for (int i = 0; i < len; i ++) rbuf[len - 1 - i] = buf[i];
+	return rbuf;
 }
 
 void buffer_2d_transpose(int *buf, int *tbuf, int rws, int cls) {

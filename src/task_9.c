@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 		return (EXIT_SUCCESS);
 	}
 	
-	int *buf, **bufs, *lens, *inds, *lbuf;
+	int *buf, **bufs, *lens, *inds, *lbuf, *rbuf, llen;
 	
 	int len = atoi(argv[1]);
 	int st = atoi(argv[2]);
@@ -48,26 +48,28 @@ int main(int argc, char** argv) {
 	}
 	
 	MPI_Status lstt, stt;
-	int llen; MPI_Recv(&llen, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &lstt);
+	MPI_Recv(&llen, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &lstt);
 	if (llen > 0) {
 		lbuf = (int*) malloc(llen * sizeof(int));
 		MPI_Recv(lbuf, llen, MPI_INT, 0, 1, MPI_COMM_WORLD, &stt);
+		rbuf = buffer_reverse(lbuf, llen);
 		printf("thread(%d): ", MPI_COMM_RANK); buffer_print(lbuf, llen);
-		MPI_Send(lbuf, llen, MPI_INT, 0, 0, MPI_COMM_WORLD); free(lbuf);
+		MPI_Send(rbuf, llen, MPI_INT, 0, 0, MPI_COMM_WORLD);
+		free(rbuf); free(lbuf);
 	} else {
 		MPI_Send((void*) 0, 0, MPI_INT, 0, 0, MPI_COMM_WORLD);
 	}
 	
-	if (MPI_COMM_RANK == 0) {
+	if (MPI_COMM_RANK == 0) {		
 		buf = (int*) malloc(len * sizeof(int));
 		
 		MPI_Status *sts; sts = (MPI_Status*) malloc(MPI_COMM_SIZE * sizeof(MPI_Status));
 		
-		for (int i = 0; i < MPI_COMM_SIZE; i ++) {
+		for (int i = MPI_COMM_SIZE - 1; i >= 0; i --) {
 			bufs[i] = (int*) malloc(len * sizeof(int));
-			MPI_Recv(bufs[i], len, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &sts[i]);
-			if (lens[sts[i].MPI_SOURCE] > 0) printf("from thread(%d): ", sts[i].MPI_SOURCE); buffer_print(bufs[i], lens[sts[i].MPI_SOURCE]);
-			buffer_copy(buf, bufs[i], lens[sts[i].MPI_SOURCE], inds[sts[i].MPI_SOURCE]);
+			MPI_Recv(bufs[i], lens[i], MPI_INT, i, 0, MPI_COMM_WORLD, &sts[i]);
+			if (lens[i] > 0) printf("from thread(%d): ", sts[i].MPI_SOURCE); buffer_print(bufs[i], lens[i]);
+			if (lens[i] > 0) buffer_copy(buf, bufs[i], lens[i], len - inds[i] - lens[i]);
 		}
 		
 		buffer_print(buf, len); free(buf);
