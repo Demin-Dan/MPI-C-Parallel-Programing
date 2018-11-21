@@ -22,6 +22,10 @@ int buffer_distribute(int len, int *lens, int *inds, int dby) {
 	return llen;
 }
 
+void buffer_2d_transpose(int *buf, int *tbuf, int rws, int cls) {
+	for (int i = 0; i < rws; i ++) for (int j = 0; j < cls; j ++) tbuf[i + rws * j] = buf[i * cls + j]; 
+}
+
 void buffer_fill(int *buf, int len, int st, int en) {
     for (int i = 0; i < len; i ++) buf[i] = (rand() % (en - st + 1)) + st;
 }

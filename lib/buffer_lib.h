@@ -5,6 +5,8 @@ void buffer_print(int*, int);
 
 int buffer_distribute(int, int*, int*, int);
 
+void buffer_2d_transpose(int*, int*, int, int);
+
 void buffer_fill(int*, int, int, int);
 
 void buffer_copy(int*, int*, int, int);
