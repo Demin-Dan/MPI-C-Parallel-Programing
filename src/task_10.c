@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if (MPI_COMM_RANK == 0) {
-		buffer_fill(buf, len , st, en);
+		srand(time(NULL)); buffer_fill(buf, len , st, en);
 		stt = MPI_Wtime();
 		MPI_Send(buf, len, MPI_INT, 1, 0, MPI_COMM_WORLD);
 		MPI_Recv(rbuf, len, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if (MPI_COMM_RANK == 0) {
-		buffer_fill(buf, len , st, en);
+		srand(time(NULL)); buffer_fill(buf, len , st, en);
 		stt = MPI_Wtime();
 		MPI_Ssend(buf, len, MPI_INT, 1, 0, MPI_COMM_WORLD);
 		MPI_Recv(rbuf, len, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if (MPI_COMM_RANK == 0) {
-		buffer_fill(buf, len , st, en);
+		srand(time(NULL)); buffer_fill(buf, len , st, en);
 		stt = MPI_Wtime();
 		MPI_Rsend(buf, len, MPI_INT, 1, 0, MPI_COMM_WORLD);
 		MPI_Recv(rbuf, len, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if (MPI_COMM_RANK == 0) {
-		buffer_fill(buf, len , st, en);
+		srand(time(NULL)); buffer_fill(buf, len , st, en);
 		stt = MPI_Wtime();
 		MPI_Bsend(buf, len, MPI_INT, 1, 0, MPI_COMM_WORLD);
 		MPI_Recv(rbuf, len, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
